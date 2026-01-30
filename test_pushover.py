@@ -5,10 +5,11 @@ Sends a test notification to verify the integration is working.
 """
 
 import requests
+import os
 
 # =================== PUSHOVER CONFIGURATION ===================
-PUSHOVER_USER_KEY = "u7vw3t8hofn7381eej4ppb2waq8jao"
-PUSHOVER_API_TOKEN = "apdqrsvcckxwa9woaqycbu5vjh21sj"
+PUSHOVER_USER_KEY = os.getenv("PUSHOVER_USER_KEY", "your_user_key")
+PUSHOVER_API_TOKEN = os.getenv("PUSHOVER_API_TOKEN", "your_api_token")
 
 def send_test_notification():
     """Send a test notification to verify Pushover is working."""

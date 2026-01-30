@@ -10,18 +10,18 @@ from classes.Scraper import FlightScraper
 
 # =================== EMAIL CONFIGURATION ===================
 # Configure your email settings here
-EMAIL_ENABLED = True  # Set to False to disable email notifications
-EMAIL_FROM = "rafaeldbernardes@gmail.com"  # Your email address
-EMAIL_PASSWORD = "ibvhzdmzrbqhmugs"  # Your email password or app-specific password
-EMAIL_TO = "rafaeldbernardes@gmail.com"  # Where to send alerts (can be same as FROM)
+EMAIL_ENABLED = False  # Set to True to enable email notifications
+EMAIL_FROM = os.getenv("EMAIL_FROM", "your_email@gmail.com")  # Your email address
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "your_app_password")  # Your email password or app-specific password
+EMAIL_TO = os.getenv("EMAIL_TO", "your_email@gmail.com")  # Where to send alerts (can be same as FROM)
 EMAIL_SMTP = "smtp.gmail.com"  # SMTP server (for Gmail)
 EMAIL_PORT = 587  # SMTP port
 
 # =================== PUSHOVER CONFIGURATION ===================
 # Pushover notifications (emergency mode - will wake you up!)
-PUSHOVER_ENABLED = True
-PUSHOVER_USER_KEY = "u7vw3t8hofn7381eej4ppb2waq8jao"  # Your user key
-PUSHOVER_API_TOKEN = "apdqrsvcckxwa9woaqycbu5vjh21sj"  # Your API token
+PUSHOVER_ENABLED = False  # Set to True to enable pushover notifications
+PUSHOVER_USER_KEY = os.getenv("PUSHOVER_USER_KEY", "your_user_key")  # Your user key
+PUSHOVER_API_TOKEN = os.getenv("PUSHOVER_API_TOKEN", "your_api_token")  # Your API token
 PUSHOVER_PRIORITY = 2  # Emergency - Critical Alert toca em modo Sono (iOS: 1x, Android: repete)
 PUSHOVER_RETRY = 30
 PUSHOVER_EXPIRE = 600
