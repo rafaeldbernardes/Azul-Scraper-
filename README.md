@@ -1,78 +1,197 @@
-# Latam-Airlines-Flights-Scraper
+# Azul Flight Scraper - Pontos para Punta Cana 🛫
 
-This repository contains a flight scraper tool that retrieves flight information from the LATAM Airlines website. It allows users to search for flights based on specific departure and return dates, as well as origin and destination airports.
+🔍 **Scraper automatizado** para monitorar passagens em pontos da **Azul Airlines** para **Punta Cana** em **Classe Executiva**.
 
-<p align="center"><img src="https://github.com/SantiagoAlarconDS/Latam-Airlines-Flights-Scraper/blob/main/readme_images/project_flight.jpg" width="900" height="700"></p>
+## 📋 O que faz
+
+Este script monitora automaticamente passagens aéreas em pontos da Azul (programa TudoAzul) para voos de **São Paulo (GRU/VCP)** para **Punta Cana (PUJ)** em **classe executiva**.
+
+### Funcionalidades
+
+- ✅ **Monitoramento contínuo**: Executa buscas a cada 10 minutos
+- ✅ **Multi-origem**: Busca voos saindo de **GRU** (Guarulhos) e **VCP** (Viracopos)
+- ✅ **Alertas inteligentes**: Notifica por **Email** e **Pushover** quando encontrar pontos abaixo do threshold
+- ✅ **Banco de dados**: Rastreia os menores valores encontrados
+- ✅ **Critical Alerts**: Pushover com Priority 2 toca mesmo em modo Sono/Focus (iOS/Android)
+- ✅ **Histórico**: Mantém registro dos melhores valores encontrados por data
+
+## 🚀 Como funciona
+
+1. **Busca automática**: A cada 10 minutos, o scraper consulta 14 rotas (7 datas × 2 origens)
+2. **Comparação de valores**: Compara com o banco de dados local
+3. **Alertas**: Se encontrar valor menor que o threshold configurado, envia notificação
+4. **Atualização**: Salva o novo menor valor no banco de dados
+
+## 📦 Instalação
+
+### Pré-requisitos
+
+- Python 3.10+
+- Google Chrome (ou Chromium)
+- Linux (testado no Ubuntu)
+
+### Passos
+
+1. **Clone o repositório**:
+
+```bash
+git clone git@github.com:rafaeldbernardes/Azul-Scraper-.git
+cd Azul-Scraper-
+```
+
+2. **Instale as dependências**:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. **Configure as variáveis de ambiente**:
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Edite o arquivo `.env` com suas credenciais:
+
+```env
+# Email
+EMAIL_ENABLED=True
+EMAIL_FROM=seu_email@gmail.com
+EMAIL_PASSWORD=sua_senha_app
+EMAIL_TO=seu_email@gmail.com
+
+# Pushover
+PUSHOVER_ENABLED=True
+PUSHOVER_USER_KEY=seu_user_key
+PUSHOVER_API_TOKEN=seu_api_token
+```
+
+### Configurar Pushover (Opcional)
+
+Para receber alertas no celular:
+
+1. Crie uma conta em [pushover.net](https://pushover.net)
+2. Crie uma aplicação para pegar o API Token
+3. No app Pushover (iOS/Android):
+   - **Android**: Ative "Sobrepor ao modo Não Perturbe"
+   - **iOS**: Ative "Critical Alerts" nas permissões do app
+
+## ⚙️ Configuração
+
+Edite `main.py` para personalizar:
+
+```python
+# Threshold de pontos para alerta
+POINTS_THRESHOLD = 300000  # Alerta se encontrar < 300.000 pontos
+
+# Datas para monitorar (YYYY-MM-DD)
+dates = [
+    '2026-04-26',
+    '2026-04-27',
+    '2026-04-28',
+    '2026-04-29',
+    '2026-04-30',
+    '2026-05-01',
+    '2026-05-02'
+]
+
+# Aeroportos de origem
+origins = ['GRU', 'VCP']  # Guarulhos e Viracopos
+```
+
+## 🎯 Uso
+
+### Executar o scraper
+
+```bash
+python main.py
+```
+
+O script irá:
+1. Inicializar o Chrome em modo headless
+2. Buscar voos para cada data e origem configurada
+3. Comparar com o banco de dados
+4. Enviar alertas se encontrar novos valores mais baixos
+5. Aguardar 10 minutos e repetir
+
+### Testar alertas
+
+```bash
+python test_pushover.py
+```
+
+Envia 3 notificações de teste com diferentes sons para verificar a configuração.
+
+## 📊 Banco de Dados
+
+O script mantém um arquivo `best_points.json` com os menores valores encontrados:
+
+```json
+{
+  "GRU-2026-04-26": {
+    "points": "285.000",
+    "points_value": 285000,
+    "last_updated": "2025-01-29T10:30:00"
+  },
+  "VCP-2026-04-26": {
+    "points": "295.000",
+    "points_value": 295000,
+    "last_updated": "2025-01-29T10:35:00"
+  }
+}
+```
+
+## 🔧 Troubleshooting
+
+### Chrome não inicia
+
+Certifique-se de que o Chrome está instalado:
+```bash
+google-chrome --version
+```
+
+### Timeout errors
+
+O timeout padrão é de 20 segundos. Se sua internet for lenta, aumente em `classes/Scraper.py`:
+```python
+delay = 30  # aumente de 20 para 30
+```
+
+### Alertas não chegam
+
+1. **Email**: Verifique se允许 less secure apps ou use App Password do Gmail
+2. **Pushover**:
+   - Verifique se `PUSHOVER_ENABLED = True`
+   - No iOS: configure "Critical Alerts" nas permissões do app
+   - No Android: configure para "Sobrepor ao modo Não Perturbe"
+
+## 📈 Estrutura do Projeto
+
+```
+Azul-Scraper-/
+├── main.py                 # Script principal
+├── classes/
+│   └── Scraper.py         # Web scraper com Selenium
+├── test_pushover.py       # Teste de alertas
+├── requirements.txt       # Dependências Python
+├── .env.example          # Template de configuração
+├── best_points.json      # Banco de dados local
+└── README.md            # Este arquivo
+```
+
+## ⚠️ Disclaimer
+
+Este script é destinado apenas para fins educacionais e uso pessoal. Respeite os termos de serviço da Azul Airlines. O uso excessivo de scraping pode resultar em bloqueio de IP.
+
+## 📄 Licença
+
+Este projeto é licenciado sob a [MIT License](LICENSE).
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
 
 ---
-# Motivation
-The Flight Scraper tool was developed to provide users a way to search for flights and gather relevant information from the LATAM Airlines website. By automating the scraping process, users can quickly retrieve flight details, including prices, times, and stopovers, for their desired travel dates and destinations. The tool aims to be embedded in an app to simplify the flight search process and assist users in making informed decisions when booking their flights.
 
-# Features
-
-* Search for Flights: Users can enter their desired departure and return dates, as well as the origin and destination airports, to search for available flights.
-
-* Multiple Searches: The tool allows users to perform multiple searches by prompting for new departure and return dates. This feature enables users to compare flight options across different dates.
-
-* Data Extraction: The scraper extracts flight details such as prices, times, and stopovers from the LATAM Airlines website, providing comprehensive information for each search.
-
-* Data Normalization: The scraped data is normalized and organized into a structured format using the Pandas library. This allows for easy analysis and further processing of the flight information.
-
-* Data Export: The flight information is saved in an Excel file for convenient access and sharing. Each search is saved in a separate directory based on the departure and return dates, along with the airport codes.
-
-## Set Up and Usage
-
-1. Clone the repository:
-
-   ```
-   git clone git@github.com:SantiagoAlarconDS/Latam-Airlines-Flights-Scraper.git
-   cd Latam-Airlines-Flights-Scraper
-   ```
-
-2. Install the required dependencies:
-
-   ```
-   pip install -r requirements.txt
-   ```
-
-3. Run the main script:
-
-   ```
-   python main.py
-   ```
-
-4. Follow the prompts to enter the departure and return dates, as well as the origin and destination airports. The tool will generate the appropriate URLs and scrape flight information from the LATAM Airlines website.
-
-    For instance:
-   - Enter the departure date (DD/MM/YYYY): 05/10/2023
-   - Enter the return date (DD/MM/YYYY): 08/10/2023
-   - Enter the origin airport code (IATA airport code): MIA
-   - Enter the destination airport code (IATA airport code): BOG
-
-
-5. If you want to search for different dates, enter "yes" when prompted. Repeat step 4 for each search.
-
-6. The flight information will be saved in an Excel file in the `Flights` directory. Each search will create a separate directory based on the departure and return dates, along with the airport codes.
-
-   - File path: `Flights/[departure_date]*[return_date]_[airport_codes]/flights_[departure_date]_[return_date]_[airport_codes].xlsx`
-
-7. The flight search is completed once all desired searches are performed.
-
-
----
-# Contributing
-Contributions to this project are welcome. If you encounter any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the project's GitHub repository.
-
----
-# Disclaimer
-This script is intended for educational purposes only. Use it responsibly and adhere to the terms and conditions of the Latam Airlines website. The scraping process should not be abused or used for any malicious activities.
-
----
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-Feel free to customize and enhance the flight scraper tool as per your requirements.
-
-For any questions or issues, please contact [lsascol01@gmail.com](mailto:lsascol01@gmail.com).
-
+**Desenvolvido para monitorar passagens em pontos para viagens em família** ✈️👨‍👩‍👧‍👦
