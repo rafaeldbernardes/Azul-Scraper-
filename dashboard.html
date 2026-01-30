@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Scraper Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        }
+        .new-record {
+            animation: pulse-green 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-400">✈️ Flight Scraper Dashboard</h1>
+            <div class="flex items-center gap-4">
+                <span id="lastUpdate" class="text-gray-400">Loading...</span>
+                <span id="countdown" class="text-yellow-400 font-mono"></span>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-4">Best Points Found (Below 350,000)</h2>
+            <div class="bg-gray-800 rounded-lg p-6">
+                <div id="content" class="space-y-3">
+                    <p class="text-gray-400">Loading data...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h3 class="text-lg font-semibold mb-2">📊 Statistics</h3>
+            <div id="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-700 rounded p-4">
+                    <p class="text-gray-400 text-sm">Total Dates Tracked</p>
+                    <p id="totalDates" class="text-2xl font-bold text-blue-400">-</p>
+                </div>
+                <div class="bg-gray-700 rounded p-4">
+                    <p class="text-gray-400 text-sm">Best Deal</p>
+                    <p id="bestDeal" class="text-2xl font-bold text-green-400">-</p>
+                </div>
+                <div class="bg-gray-700 rounded p-4">
+                    <p class="text-gray-400 text-sm">Threshold</p>
+                    <p class="text-2xl font-bold text-yellow-400">350,000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const REFRESH_INTERVAL = 5000; // 5 seconds
+        let previousData = {};
+
+        async function loadData() {
+            try {
+                const response = await fetch('best_points.json?t=' + Date.now());
+                const data = await response.json();
+
+                displayData(data);
+                previousData = JSON.parse(JSON.stringify(data));
+            } catch (error) {
+                document.getElementById('content').innerHTML =
+                    '<p class="text-red-400">Error loading data. Make sure the scraper is running.</p>';
+            }
+        }
+
+        function displayData(data) {
+            const content = document.getElementById('content');
+            const dates = Object.keys(data).sort();
+
+            if (dates.length === 0) {
+                content.innerHTML = '<p class="text-gray-400">No data yet. Waiting for scraper to find values below 350,000...</p>';
+                document.getElementById('totalDates').textContent = '0';
+                document.getElementById('bestDeal').textContent = '-';
+                return;
+            }
+
+            let html = '';
+            let bestValue = Infinity;
+            let bestDate = '';
+
+            dates.forEach(date => {
+                const entry = data[date];
+                const pointsValue = entry.points_value;
+                const isNew = !previousData[date] || previousData[date].points_value !== pointsValue;
+                const pointsFormatted = entry.points;
+
+                if (pointsValue < bestValue) {
+                    bestValue = pointsValue;
+                    bestDate = date;
+                }
+
+                const lastUpdated = new Date(entry.last_updated).toLocaleString();
+                const isNewClass = isNew ? 'new-record border-green-500' : 'border-gray-700';
+
+                html += `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between bg-gray-700 rounded-lg p-4 border-2 ${isNewClass}">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg font-semibold text-blue-300">${formatDate(date)}</span>
+                                <span class="text-xs text-gray-400">${date}</span>
+                                ${isNew ? '<span class="bg-green-500 text-white text-xs px-2 py-1 rounded">NEW!</span>' : ''}
+                            </div>
+                            <p class="text-gray-400 text-sm mt-1">Updated: ${lastUpdated}</p>
+                        </div>
+                        <div class="mt-2 md:mt-0">
+                            <span class="text-3xl font-bold ${pointsValue < 300000 ? 'text-green-400' : 'text-yellow-400'}">${pointsFormatted}</span>
+                            <span class="text-gray-400 ml-2">points</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+            document.getElementById('totalDates').textContent = dates.length;
+            document.getElementById('bestDeal').textContent = bestValue !== Infinity ? data[bestDate].points : '-';
+            document.getElementById('lastUpdate').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+
+        function updateCountdown() {
+            const now = Date.now();
+            const secondsUntilRefresh = Math.ceil((REFRESH_INTERVAL - (now % REFRESH_INTERVAL)) / 1000);
+            document.getElementById('countdown').textContent = `Refresh in ${secondsUntilRefresh}s`;
+        }
+
+        // Initial load
+        loadData();
+        updateCountdown();
+
+        // Refresh data
+        setInterval(loadData, REFRESH_INTERVAL);
+        setInterval(updateCountdown, 1000);
+    </script>
+</body>
+</html>
